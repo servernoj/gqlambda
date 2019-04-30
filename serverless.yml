@@ -1,0 +1,46 @@
+# serverless.yml
+
+service: apollo-lambda
+provider:
+  name: aws
+  runtime: nodejs8.10
+functions:
+  graphql:
+    # this is formatted as <FILENAME>.<HANDLER>
+    handler: src/graphql.graphqlHandler
+    events:
+    - http:
+        path: graphql
+        method: post
+        cors: true
+    - http:
+        path: graphql
+        method: get
+        cors: true
+plugins:
+  - serverless-puresec-cli
+resources:
+  Resources:
+    GraphqlRole:
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+          Version: '2012-10-17'
+        Path: /
+        Policies:
+        - PolicyDocument:
+            Statement:
+            - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - logs:CreateLogGroup
+              Effect: Allow
+              Resource: arn:aws:logs:us-east-1:747350964129:log-group:/aws/lambda/apollo-lambda-dev-graphql:*
+            Version: '2012-10-17'
+          PolicyName: PureSecGeneratedRoles
+        RoleName: apollo-lambda-puresec-graphql
+      Type: AWS::IAM::Role
